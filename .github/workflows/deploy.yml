@@ -69,6 +69,6 @@ jobs:
           docker run -d \
             --name myapi-$TAG \
             --restart unless-stopped \
-            -p $PORT:80 \
+            -p $PORT:8080 \
             -e ASPNETCORE_ENVIRONMENT=$ENV \
             $IMAGE
