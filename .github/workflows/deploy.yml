@@ -1,0 +1,73 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [master, pre]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      tag: ${{ steps.setvars.outputs.tag }}
+      port: ${{ steps.setvars.outputs.port }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set variables
+        id: setvars
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "tag=master" >> $GITHUB_OUTPUT
+            echo "port=5000" >> $GITHUB_OUTPUT
+          else
+            echo "tag=pre" >> $GITHUB_OUTPUT
+            echo "port=5001" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.setvars.outputs.tag }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            TAG=${{ needs.build.outputs.tag }}
+            PORT=${{ needs.build.outputs.port }}
+            IMAGE=ghcr.io/${{ github.repository }}:$TAG
+            
+            docker pull $IMAGE
+            docker stop myapi-$TAG || true
+            docker rm myapi-$TAG || true
+            docker run -d \
+              --name myapi-$TAG \
+              --restart unless-stopped \
+              -p $PORT:80 \
+              $IMAGE
