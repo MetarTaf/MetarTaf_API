@@ -11,6 +11,7 @@ COPY Api/*.csproj ./Api/
 COPY Domain/*.csproj ./Domain/
 COPY Application/*.csproj ./Application/
 COPY Infrastructure/*.csproj ./Infrastructure/
+COPY Tests/*.csproj ./Tests/
 
 # Restore dependencies
 RUN dotnet restore
