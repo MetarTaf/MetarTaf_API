@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: metartaf/metartaf_api
 
 jobs:
   build:
@@ -17,7 +17,6 @@ jobs:
 
     outputs:
       tag: ${{ steps.setvars.outputs.tag }}
-      port: ${{ steps.setvars.outputs.port }}
 
     steps:
       - name: Checkout
@@ -28,10 +27,8 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "tag=master" >> $GITHUB_OUTPUT
-            echo "port=5000" >> $GITHUB_OUTPUT
           else
             echo "tag=pre" >> $GITHUB_OUTPUT
-            echo "port=5001" >> $GITHUB_OUTPUT
           fi
 
       - name: Log in to Container Registry
@@ -50,24 +47,28 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            TAG=${{ needs.build.outputs.tag }}
-            PORT=${{ needs.build.outputs.port }}
-            IMAGE=ghcr.io/${{ github.repository }}:$TAG
-            
-            docker pull $IMAGE
-            docker stop myapi-$TAG || true
-            docker rm myapi-$TAG || true
-            docker run -d \
-              --name myapi-$TAG \
-              --restart unless-stopped \
-              -p $PORT:80 \
-              $IMAGE
+      - name: Deploy container
+        run: |
+          TAG=${{ needs.build.outputs.tag }}
+          IMAGE=ghcr.io/metartaf/metartaf_api:$TAG
+          
+          if [[ "$TAG" == "master" ]]; then
+            PORT=5000
+            ENV=Production
+          else
+            PORT=5001
+            ENV=Staging
+          fi
+          
+          docker pull $IMAGE
+          docker stop myapi-$TAG || true
+          docker rm myapi-$TAG || true
+          docker run -d \
+            --name myapi-$TAG \
+            --restart unless-stopped \
+            -p $PORT:8080 \
+            -e ASPNETCORE_ENVIRONMENT=$ENV \
+            $IMAGE
