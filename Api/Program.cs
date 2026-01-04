@@ -52,16 +52,22 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "MetarTaf API", Version = "v1" });
 });
 
-// ---------- CORS (for udvikling) ----------
+// ---------- CORS ----------
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(
+            // Udvikling (din lokale PC)
+            "http://localhost:60600",
+            "http://192.168.1.153:60600",
+
+            // Pre frontend (når den hostes på serveren)
+            "http://192.168.1.162:5001",
+
+            // Tilføj flere efter behov
             "http://localhost:5173",
-            "http://localhost:5200",
-            "http://localhost:60600",          // <-- Fra dit screenshot
-            "http://192.168.1.153:60600"
+            "http://localhost:5200"
         )
         .AllowAnyMethod()
         .AllowAnyHeader()
