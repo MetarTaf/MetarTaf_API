@@ -100,7 +100,7 @@ app.UseCors();
 app.UseRouting();
 
 app.MapControllers();
-app.MapHub<WeatherHub>("/hubs/weather").RequireCors("SignalR");
+app.MapHub<WeatherHub>("/hubs/weather");
 
 app.MapGet("/healthz", () => Results.Ok("ok"));
 
