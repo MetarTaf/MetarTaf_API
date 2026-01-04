@@ -65,7 +65,10 @@ builder.Services.AddCors(options =>
     // SignalR kræver credentials, så separat policy
     options.AddPolicy("SignalR", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "https://localhost:5001")
+        policy.WithOrigins("http://localhost:5173",
+            "http://localhost:3000",
+            "https://localhost:5001",
+            "http://192.168.1.153:60600") //stationær pc
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
