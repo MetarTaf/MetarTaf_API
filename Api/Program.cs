@@ -43,6 +43,7 @@ builder.Services.AddHostedService(sp => new OpmetFetchBackgroundService(
     sp.GetRequiredService<ILogger<OpmetFetchBackgroundService>>(),
     TimeSpan.FromMinutes(fetchIntervalMinutes)
 ));
+builder.Services.AddHostedService<TestDataBackgroundService>();
 
 // ---------- Controllers ----------
 builder.Services.AddControllers();

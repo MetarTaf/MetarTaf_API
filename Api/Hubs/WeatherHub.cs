@@ -54,6 +54,10 @@ public sealed class WeatherHub : Hub
             lock (set) { set.Remove(icao); }
         }
 
+        // TEST lufthavn kan ikke unsubscribes
+        if (icao == "TEST")
+            return;
+
         // Unsubscribe fra API hvis ingen andre følger denne lufthavn
         if (!AnyoneSubscribedTo(icao))
         {
@@ -97,7 +101,6 @@ public sealed class WeatherHub : Hub
     {
         _logger.LogInformation("Client disconnected: {ConnectionId}", Context.ConnectionId);
 
-        // Hent og fjern denne connections lufthavne
         if (_connectionSubscriptions.TryRemove(Context.ConnectionId, out var icaos))
         {
             List<string> icaoList;
@@ -105,7 +108,10 @@ public sealed class WeatherHub : Hub
 
             foreach (var icao in icaoList)
             {
-                // Unsubscribe fra API hvis ingen andre følger denne lufthavn
+                // TEST lufthavn kan ikke unsubscribes
+                if (icao == "TEST")
+                    continue;
+
                 if (!AnyoneSubscribedTo(icao))
                 {
                     await _weatherService.UnsubscribeAsync(icao);
