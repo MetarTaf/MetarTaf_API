@@ -63,7 +63,7 @@ builder.Services.AddCors(options =>
             "http://192.168.1.153:60600",
 
             // Pre frontend (når den hostes på serveren)
-            "http://192.168.1.162:5001",
+            "http://192.168.1.162:5003",
 
             // Tilføj flere efter behov
             "http://localhost:5173",
