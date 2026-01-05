@@ -65,6 +65,10 @@ builder.Services.AddCors(options =>
             // Pre frontend (når den hostes på serveren)
             "http://192.168.1.162:5003",
 
+            // Offentlige domæner
+            "https://pre.metartaf.cbmprojects.dk",
+            "https://metartaf.cbmprojects.dk",
+
             // Tilføj flere efter behov
             "http://localhost:5173",
             "http://localhost:5200"
