@@ -173,6 +173,40 @@ public sealed class WeatherService
         }
     }
 
+    public async Task AddTestMetarAsync(string icao, MetarData metar)
+    {
+        var airport = await _airportRepository.GetAsync(icao);
+        if (airport == null) return;
+
+        if (airport.AddMetar(metar))
+        {
+            var dto = new WeatherUpdateDto
+            {
+                Icao = icao,
+                NewMetar = MapMetarToDto(metar),
+                UpdateTimeUtc = DateTime.UtcNow
+            };
+            await _notifier.NotifyAsync(dto);
+        }
+    }
+
+    public async Task AddTestTafAsync(string icao, TafData taf)
+    {
+        var airport = await _airportRepository.GetAsync(icao);
+        if (airport == null) return;
+
+        if (airport.AddTaf(taf))
+        {
+            var dto = new WeatherUpdateDto
+            {
+                Icao = icao,
+                NewTaf = MapTafToDto(taf),
+                UpdateTimeUtc = DateTime.UtcNow
+            };
+            await _notifier.NotifyAsync(dto);
+        }
+    }
+
     private async Task FetchAndUpdateSingleAsync(Airport airport, CancellationToken ct)
     {
         var (metars, tafs) = await _opmetFetcher.FetchAsync(new[] { airport.Icao }, ct);

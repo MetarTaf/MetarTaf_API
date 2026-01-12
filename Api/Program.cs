@@ -43,6 +43,7 @@ builder.Services.AddHostedService(sp => new OpmetFetchBackgroundService(
     sp.GetRequiredService<ILogger<OpmetFetchBackgroundService>>(),
     TimeSpan.FromMinutes(fetchIntervalMinutes)
 ));
+builder.Services.AddHostedService<TestDataBackgroundService>();
 
 // ---------- Controllers ----------
 builder.Services.AddControllers();
@@ -52,23 +53,30 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "MetarTaf API", Version = "v1" });
 });
 
-// ---------- CORS (for udvikling) ----------
+// ---------- CORS ----------
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-    
-    // SignalR kræver credentials, så separat policy
-    options.AddPolicy("SignalR", policy =>
-    {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "https://localhost:5001")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        policy.WithOrigins(
+            // Udvikling (din lokale PC)
+            "http://localhost:60600",
+            "http://192.168.1.153:60600",
+
+            // Pre frontend (når den hostes på serveren)
+            "http://192.168.1.162:5003",
+
+            // Offentlige domæner
+            "https://pre.metartaf.cbmprojects.dk",
+            "https://metartaf.cbmprojects.dk",
+
+            // Tilføj flere efter behov
+            "http://localhost:5173",
+            "http://localhost:5200"
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
     });
 });
 
@@ -97,7 +105,7 @@ app.UseCors();
 app.UseRouting();
 
 app.MapControllers();
-app.MapHub<WeatherHub>("/hubs/weather").RequireCors("SignalR");
+app.MapHub<WeatherHub>("/hubs/weather");
 
 app.MapGet("/healthz", () => Results.Ok("ok"));
 

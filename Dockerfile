@@ -6,7 +6,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Kopiér solution og alle projektfiler
-COPY MetarTaf.sln .
+COPY MetarTaf_API.sln .
 COPY Api/*.csproj ./Api/
 COPY Domain/*.csproj ./Domain/
 COPY Application/*.csproj ./Application/
